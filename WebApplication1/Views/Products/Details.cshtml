@@ -1,0 +1,126 @@
+﻿@model OnlineStore.Models.Product
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index">Начало</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Products" asp-action="Index">Продукти</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Products" asp-action="Index" asp-route-category="@Model.Category">@Model.Category</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-6">
+            @if (!string.IsNullOrEmpty(Model.ImageUrl))
+            {
+                <img src="@Model.ImageUrl" class="img-fluid rounded" alt="@Model.Name">
+            }
+            else
+            {
+                <div class="d-flex align-items-center justify-content-center bg-light rounded" style="height: 400px;">
+                    <span class="text-muted h4">Няма изображение</span>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-6">
+            <h1>@Model.Name</h1>
+            <p class="lead">@Model.Description</p>
+
+            <div class="row mb-3">
+                <div class="col-sm-3"><strong>Категория:</strong></div>
+                <div class="col-sm-9">
+                    <a asp-controller="Products" asp-action="Index" asp-route-category="@Model.Category" class="text-decoration-none">
+                        @Model.Category
+                    </a>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-3"><strong>Цена:</strong></div>
+                <div class="col-sm-9"><span class="h3 text-primary">@Model.Price.ToString("C")</span></div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-sm-3"><strong>Наличност:</strong></div>
+                <div class="col-sm-9">
+                    @if (Model.StockQuantity > 0)
+                    {
+                        <span class="badge bg-success fs-6">На склад (@Model.StockQuantity бр.)</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-danger fs-6">Изчерпан</span>
+                    }
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-sm-3"><strong>Прегледи:</strong></div>
+                <div class="col-sm-9">@Model.ViewCount пъти</div>
+            </div>
+
+            @if (Model.StockQuantity > 0)
+            {
+                <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                    <input type="hidden" name="productId" value="@Model.Id" />
+                    <div class="row mb-3">
+                        <div class="col-sm-3">
+                            <label for="quantity" class="form-label">Количество:</label>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="number" id="quantity" name="quantity" value="1" min="1" max="@Model.StockQuantity" class="form-control">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-shopping-cart"></i> Добави в количката
+                    </button>
+                </form>
+            }
+            else
+            {
+                <button class="btn btn-secondary btn-lg" disabled>
+                    <i class="fas fa-times"></i> Изчерпан продукт
+                </button>
+            }
+        </div>
+    </div>
+
+    @if (ViewBag.RelatedProducts != null && ((IEnumerable<OnlineStore.Models.Product>)ViewBag.RelatedProducts).Any())
+    {
+        <hr class="my-5">
+        <h3>Свързани продукти</h3>
+        <div class="row">
+            @foreach (var relatedProduct in (IEnumerable<OnlineStore.Models.Product>)ViewBag.RelatedProducts)
+            {
+                <div class="col-md-3 mb-4">
+                    <div class="card h-100">
+                        @if (!string.IsNullOrEmpty(relatedProduct.ImageUrl))
+                        {
+                            <img src="@relatedProduct.ImageUrl" class="card-img-top" alt="@relatedProduct.Name" style="height: 150px; object-fit: cover;">
+                        }
+                        else
+                        {
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 150px;">
+                                <span class="text-muted">Няма изображение</span>
+                            </div>
+                        }
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title">@relatedProduct.Name</h6>
+                            <div class="mt-auto">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="h6 text-primary mb-0">@relatedProduct.Price.ToString("C")</span>
+                                </div>
+                                <a asp-action="Details" asp-route-id="@relatedProduct.Id" class="btn btn-outline-primary btn-sm w-100">Виж детайли</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>

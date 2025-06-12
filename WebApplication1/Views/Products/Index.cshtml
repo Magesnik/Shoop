@@ -1,0 +1,119 @@
+﻿@model IEnumerable<OnlineStore.Models.Product>
+@{
+    ViewData["Title"] = "Всички продукти";
+}
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-3">
+            <h4>Филтри</h4>
+
+            <!-- Търсене -->
+            <form asp-action="Index" method="get" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="search" value="@ViewBag.SearchTerm" class="form-control" placeholder="Търсене...">
+                    <button class="btn btn-outline-secondary" type="submit">Търси</button>
+                </div>
+                @if (!string.IsNullOrEmpty(ViewBag.CurrentCategory))
+                {
+                    <input type="hidden" name="category" value="@ViewBag.CurrentCategory" />
+                }
+            </form>
+
+            <!-- Категории -->
+            <h5>Категории</h5>
+            <div class="list-group mb-3">
+                <a asp-action="Index" class="list-group-item list-group-item-action @(string.IsNullOrEmpty(ViewBag.CurrentCategory) ? "active" : "")">
+                    Всички категории
+                </a>
+                @foreach (var category in ViewBag.Categories)
+                {
+                    <a asp-action="Index" asp-route-category="@category"
+                       class="list-group-item list-group-item-action @(ViewBag.CurrentCategory == category ? "active" : "")">
+                        @category
+                    </a>
+                }
+            </div>
+        </div>
+
+        <div class="col-md-9">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    @if (!string.IsNullOrEmpty(ViewBag.SearchTerm))
+                    {
+                        <span>Резултати от търсенето за "@ViewBag.SearchTerm"</span>
+                    }
+                    else if (!string.IsNullOrEmpty(ViewBag.CurrentCategory))
+                    {
+                        <span>@ViewBag.CurrentCategory</span>
+                    }
+                    else
+                    {
+                        <span>Всички продукти</span>
+                    }
+                </h2>
+                <small class="text-muted">@Model.Count() продукта</small>
+            </div>
+
+            <div class="row">
+                @foreach (var product in Model)
+                {
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="card h-100">
+                            @if (!string.IsNullOrEmpty(product.ImageUrl))
+                            {
+                                <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;">
+                            }
+                            else
+                            {
+                                <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                                    <span class="text-muted">Няма изображение</span>
+                                </div>
+                            }
+                            <div class="card-body d-flex flex-column">
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text">@product.Description</p>
+                                <div class="mt-auto">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="h5 text-primary mb-0">@product.Price.ToString("C")</span>
+                                        @if (product.StockQuantity > 0)
+                                        {
+                                            <span class="badge bg-success">На склад: @product.StockQuantity</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">Изчерпан</span>
+                                        }
+                                    </div>
+                                    <div class="btn-group w-100" role="group">
+                                        <a asp-action="Details" asp-route-id="@product.Id" class="btn btn-outline-primary">Детайли</a>
+                                        @if (product.StockQuantity > 0)
+                                        {
+                                            <form asp-controller="Cart" asp-action="AddToCart" method="post" class="d-inline">
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                <button type="submit" class="btn btn-primary">Добави в количката</button>
+                                            </form>
+                                        }
+                                        else
+                                        {
+                                            <button class="btn btn-secondary" disabled>Изчерпан</button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="text-center py-5">
+                    <h4>Няма намерени продукти</h4>
+                    <p class="text-muted">Опитайте с различни критерии за търсене.</p>
+                    <a asp-action="Index" class="btn btn-primary">Покажи всички продукти</a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
